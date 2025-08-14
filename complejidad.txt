@@ -1,0 +1,25 @@
+1. Secuencia de complejidad
+    O(n)
+    O(1)
+    O(log n)
+
+2. Decision
+    if
+        O(n)
+    else
+        O(n logn)
+
+    siempre te vas por el peor caso, entonces la complejidad sería O(n log n)
+    Si se hace un aumento del "contador", es una complejidad de O(log2N)
+    Se multiplican las complejidades cuando hay anidacion de for's. 
+
+3. Recuersividad
+    int algo (int l) {
+        if (n == 0)
+            return 480;
+        else
+            return n*algo(n-1);
+    }
+
+    si nada mas hay una llamada recursiva, funciona igual que los ciclos, se ve como va aumentando o disminuyendo
+    el posible "contador". 
