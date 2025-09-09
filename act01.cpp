@@ -5,30 +5,35 @@
 #include <iostream> 
 using namespace std;
 
-string renombre(int n, string nombre) {
-    if (n < 1) {
+/* Funcion que reemplaza las letras dentro de un string dependiendo el input
+ * Complejidad: O(n*m) = O(nm)
+ */
+
+string renombre1(int n, string nombre){
+    if (n==0){
         return nombre;
-    }
-    else if (n == 1){
-        int letra, cambio;
-        cin >>  letra >> cambio;
-        for (int i = 0; i < nombre.length(); i++) {
-            if (nombre[i] == letra){
-                nombre[i] = cambio;
+    } else {
+        char a,b;
+        cin >> a >> b;
+        // se recorre el string m veces O(m)
+        for (int i=0; i < nombre.length(); i++){
+            if (nombre.at(i) == a){
+                nombre[i] = b;
+            } else if (nombre.at(i) == b){
+                nombre[i] = a;
             }
-        }
-        return nombre;
+        } 
+        // recursividad ocurre n veces O(n)
+        return renombre1(n-1, nombre);
     }
-    else 
-        return "fuck this shit";
 }
+
 int main() { 
     int designers; 
     cin >> designers; 
     string nombre; 
     cin >> nombre;
-    string resultado = renombre(designers, nombre);
-    cout << resultado;
-
+    string resultado = renombre1(designers, nombre);
+    cout << resultado; 
     return 0; 
 }
