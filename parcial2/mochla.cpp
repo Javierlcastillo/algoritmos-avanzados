@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm> // Para std::max
+#include <queue> 
 
 #define MAXOBJ 11
 #define MAXMOCH 101
@@ -11,6 +12,10 @@ struct obj{
     int valor, peso;
     float valpeso;
 };
+
+bool my_comp(const obj &a, const obj &b){
+    return a.valpeso > b.valpeso;
+}
 
 int MochilaDP(vector<obj> &datos, int &cantDP, int N, int PESO){
     cantDP = 0;
@@ -31,7 +36,7 @@ int MochilaDP(vector<obj> &datos, int &cantDP, int N, int PESO){
     }
     return matDP[N][PESO];
 }
-
+//Complejidad O(2^n)
 int MochilaDyV(vector<obj> &datos, int &cantDyV, int N , int PESO){
     // Caso base: no hay más objetos o la capacidad de la mochila es 0 o menor.
     if (N == 0 || PESO <= 0){
@@ -52,6 +57,89 @@ int MochilaDyV(vector<obj> &datos, int &cantDyV, int N , int PESO){
     }
 }
 
+int calculaVP(vector<obj> &datos, int i, int valAux, int pesoAux, int N , int PESO){
+    int k = i+1;
+    // acumula los valores de lso obj siguientes que SI caben. 
+    while (k < N && pesoAux+datos[k].peso <= PESO){
+        valAux += datos[k].valor;
+        pesoAux += datos[k].peso;
+        k++;
+    }
+    // incluir el valor propocional del k-esimo obj si existe
+    if (k<N){
+        valAux += ((PESO-pesoAux)*datos[k].valpeso); 
+    }
+    return valAux;
+}
+
+//Complejidad O(2^n)
+void bt_helper(vector<obj> &datos, int i, int valAcc, int pesoAcc, int valPos, int N, int PESO, int &valOptimo, int &cantBT){
+    cantBT++;
+    if(i < N && pesoAcc <= PESO && valPos > valOptimo){
+        if(valAcc > valOptimo){
+            valOptimo = valAcc;
+        }
+        if(i+1 < N){
+            bt_helper(datos, i+1,valAcc+datos[i+1].valor, pesoAcc+datos[i+1].peso, valPos, N, PESO, valOptimo, cantBT);
+            int vpAux = calculaVP(datos, i+1, valAcc, pesoAcc, N, PESO);
+            bt_helper(datos, i+1, valAcc, pesoAcc, vpAux, N, PESO, valOptimo, cantBT);
+        }
+    }
+}
+//complejidad O(2^n)
+int MochilaBT(vector<obj> &datos, int &cantBT, int N, int PESO){
+    int valOptimo = 0;
+    int vAux = calculaVP(datos, -1, 0,0, N, PESO);
+    bt_helper(datos, -1, 0, 0, vAux, N, PESO, valOptimo, cantBT);
+    return valOptimo;
+}
+
+struct node {
+    int nivel, valAcc, pesoAcc, valPos;
+    node(int nivel, int valAcc, int pesoAcc, int valPos){
+        this->nivel = nivel;
+        this-> valAcc = valAcc;
+        this -> pesoAcc = pesoAcc;
+        this -> valPos = valPos;
+    }
+    bool operator<(const node &otro){
+        return this->valPos < otro.valPos;
+    }
+};
+
+int MochilaBB(vector<obj> &datos, int &cantBB, int N, int PESO){
+    priority_queue<node> pq;
+    int valOptimo = 0;
+    int valPos = calculaVP(datos, -1, 0,0, N, PESO);
+    node arranque(-1, 0, 0, valPos);
+    cantBB++;
+    pq.push(arranque);
+    while(!pq.empty()){
+        node otro =  pq.top();
+        pq.pop();
+        if(otro.valAcc > valOptimo){
+            valOptimo = otro.valAcc;
+        }
+        if (otro.valPos > valOptimo){
+            if(otro.nivel < N){
+                cantBB+=2;
+                //no incluir al obj siguiente
+                otro.valPos = calculaVP(datos, otro.nivel, otro.valAcc, otro.pesoAcc, N, PESO);
+                if(otro.valPos > valOptimo && otro.pesoAcc <= PESO){
+                    pq.push(otro);
+                }
+                //si incluir al obj siguinte
+                otro.valAcc += datos[otro.nivel].valor;
+                otro.pesoAcc += datos[otro.nivel].peso;
+                otro.valPos = calculaVP(datos, otro.nivel, otro.valAcc, otro.pesoAcc, N, PESO);
+            }
+
+        }
+
+    }
+
+}
+
 int main(){
     int v, p , N, PESO;
 
@@ -63,13 +151,30 @@ int main(){
         datos[i].peso = p;
         datos[i].valpeso = v*(1.0)/p;
     }
+    cout << "=====================" << endl;
     int cantDP = 0;
     cout << "mochila con DP: " << MochilaDP(datos, cantDP, N, PESO) << endl;
     cout << "Con " << cantDP << " operaciones" << endl;
-    cout << "=====================" << endl;
+    
 
     int cantDyV = 0;
+    cout << "=====================" << endl;
     cout << "mochila con DyV: " << MochilaDyV(datos, cantDyV, N, PESO) << endl;
     cout << "Con " << cantDyV << " operaciones" << endl;
+    
+    // for(int i = 0; i<datos.size(); i++){
+    //     cout << datos[i].valor << " " << datos[i].peso << " " << datos[i].valpeso << endl;
+    // }
+    int cantBT = 0;
+    sort(datos.begin(), datos.end(), my_comp);
     cout << "=====================" << endl;
+    cout << "mochila con BT: " << MochilaBT(datos, cantBT, N, PESO) << endl;
+    cout << "Con " << cantBT << " operaciones" << endl;
+
+    int cantBT = 0;
+    sort(datos.begin(), datos.end(), my_comp);
+    cout << "=====================" << endl;
+    cout << "mochila con BT: " << MochilaBB(datos, cantBT, N, PESO) << endl;
+    cout << "Con " << cantBT << " operaciones" << endl;
+    
 }
